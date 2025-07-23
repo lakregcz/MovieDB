@@ -5,7 +5,6 @@ import base64
 import webbrowser
 import asyncio
 
-# API Configuration
 API_KEY = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 API_READ_ACCESS_TOKEN = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 BASE_URL = "https://api.themoviedb.org/3"
@@ -20,7 +19,6 @@ class TMDBApp:
         self.current_selection = None
         self.search_results = []
 
-        # Configure page for desktop
         self.page.title = "MovieDB - Movie & TV Discovery"
         self.page.theme_mode = ft.ThemeMode.DARK
         self.page.bgcolor = "#0a0a0a"
@@ -35,7 +33,6 @@ class TMDBApp:
             "Netflix": "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
         }
 
-        # Netflix-like color palette
         self.colors = {
             "primary": "#e50914",
             "secondary": "#221f1f",
@@ -49,7 +46,6 @@ class TMDBApp:
         self.setup_ui()
 
     def setup_ui(self):
-        # Create buttons first
         self.movie_button = ft.ElevatedButton(
             "Movies",
             bgcolor=self.colors["primary"] if self.current_content_type == "movie" else self.colors["surface"],
@@ -72,7 +68,6 @@ class TMDBApp:
             on_click=lambda _: self.change_content_type("tv")
         )
 
-        # Header with Netflix-like navigation
         header = ft.Container(
             content=ft.Row([
                 ft.Text(
@@ -83,7 +78,6 @@ class TMDBApp:
                     font_family="Inter"
                 ),
                 ft.Container(expand=True),
-                # Content type toggle
                 ft.Container(
                     content=ft.Row([
                         self.movie_button,
@@ -94,9 +88,7 @@ class TMDBApp:
             padding=ft.padding.symmetric(horizontal=40, vertical=20),
             bgcolor=self.colors["background"],
             border=ft.border.only(bottom=ft.BorderSide(1, "#333"))
-        )
-
-        # Search section with hero background
+        
         self.search_field = ft.TextField(
             hint_text=f"Search for {self.current_content_type}s...",
             border_radius=25,
@@ -136,7 +128,6 @@ class TMDBApp:
             padding=ft.padding.all(20)
         )
 
-        # Results grid
         self.results_grid = ft.GridView(
             expand=1,
             runs_count=5,
@@ -145,12 +136,9 @@ class TMDBApp:
             spacing=20,
             run_spacing=25,
             padding=ft.padding.all(20)
-        )
-
-        # Details modal overlay (initially hidden)
+        
         self.details_modal = self.create_details_modal()
 
-        # Main content area
         main_content = ft.Column([
             search_section,
             ft.Container(
@@ -160,13 +148,11 @@ class TMDBApp:
             )
         ], spacing=0)
 
-        # Stack to overlay modal
         content_stack = ft.Stack([
             main_content,
             self.details_modal
         ])
 
-        # Add everything to page
         self.page.add(
             ft.Column([
                 header,
@@ -178,7 +164,6 @@ class TMDBApp:
         )
 
     def create_details_modal(self):
-        # Create modal content
         self.modal_backdrop = ft.Container(
             width=400,
             height=600,
@@ -218,7 +203,6 @@ class TMDBApp:
 
         modal_content = ft.Container(
             content=ft.Column([
-                # Close button
                 ft.Row([
                     ft.Container(expand=True),
                     ft.IconButton(
@@ -228,13 +212,8 @@ class TMDBApp:
                         on_click=self.close_modal
                     )
                 ]),
-
-                # Content
                 ft.Row([
-                    # Poster
                     self.modal_backdrop,
-
-                    # Details
                     ft.Container(
                         content=ft.Column([
                             self.modal_title,
@@ -279,12 +258,10 @@ class TMDBApp:
 
         return ft.Container(
             content=ft.Stack([
-                # Background overlay
                 ft.Container(
                     bgcolor="#000000aa",
                     on_click=self.close_modal
                 ),
-                # Modal content
                 ft.Container(
                     content=modal_content,
                     alignment=ft.alignment.center
@@ -297,14 +274,9 @@ class TMDBApp:
     def change_content_type(self, content_type):
         self.current_content_type = content_type
         self.search_field.hint_text = f"Search for {content_type}s..."
-
-        # Update button colors
         self.movie_button.bgcolor = self.colors["primary"] if content_type == "movie" else self.colors["surface"]
         self.tv_button.bgcolor = self.colors["primary"] if content_type == "tv" else self.colors["surface"]
-
-        # Clear search results when switching content type
         self.results_grid.controls.clear()
-
         self.page.update()
 
     async def search_content(self, e=None):
@@ -312,10 +284,8 @@ class TMDBApp:
         if not query:
             return
 
-        # Clear previous results
         self.results_grid.controls.clear()
 
-        # Show loading
         loading_card = ft.Container(
             content=ft.Column([
                 ft.ProgressRing(color=self.colors["primary"]),
@@ -331,7 +301,6 @@ class TMDBApp:
         self.results_grid.controls.append(loading_card)
         self.page.update()
 
-        # API call
         headers = {
             "Authorization": f"Bearer {API_READ_ACCESS_TOKEN}",
             "accept": "application/json"
@@ -357,7 +326,6 @@ class TMDBApp:
             results = data.get("results", [])
             self.search_results = results
 
-            # Clear loading
             self.results_grid.controls.clear()
 
             if not results:
@@ -374,7 +342,6 @@ class TMDBApp:
                 self.page.update()
                 return
 
-            # Create result cards
             for item in results:
                 card = self.create_result_card(item)
                 self.results_grid.controls.append(card)
@@ -382,7 +349,6 @@ class TMDBApp:
             self.page.update()
 
         except Exception as e:
-            # Clear loading and show error
             self.results_grid.controls.clear()
             error_card = ft.Container(
                 content=ft.Column([
@@ -401,7 +367,6 @@ class TMDBApp:
         poster_path = item.get("poster_path")
         rating = item.get("vote_average", 0)
 
-        # Create poster image
         if poster_path:
             image_url = f"{IMAGE_BASE_URL}{poster_path}"
             poster = ft.Image(
@@ -421,7 +386,6 @@ class TMDBApp:
                 alignment=ft.alignment.center
             )
 
-        # Rating badge
         rating_badge = ft.Container(
             content=ft.Row([
                 ft.Icon(ft.Icons.STAR, color="#ffd700", size=12),
@@ -434,13 +398,11 @@ class TMDBApp:
             right=10
         )
 
-        # Card content
         card_content = ft.Stack([
             poster,
             rating_badge
         ])
 
-        # Title
         title_text = ft.Text(
             title,
             size=13,
@@ -452,7 +414,6 @@ class TMDBApp:
             width=200
         )
 
-        # Card container with hover effect
         card = ft.Container(
             content=ft.Column([
                 card_content,
@@ -479,12 +440,9 @@ class TMDBApp:
 
     def show_details(self, item):
         self.current_selection = item
-
-        # Update modal content
         title = item.get("title" if self.current_content_type == "movie" else "name", "Unknown")
         self.modal_title.value = title
 
-        # Meta information
         date = item.get("release_date" if self.current_content_type == "movie" else "first_air_date", "")
         year = date[:4] if date else "Unknown"
 
@@ -495,15 +453,12 @@ class TMDBApp:
 
         self.modal_meta.value = meta_text
 
-        # Rating
         rating = item.get("vote_average", 0)
         self.modal_rating.content.controls[1].value = f"{rating:.1f}"
 
-        # Overview
         overview = item.get("overview", "No overview available.")
         self.modal_overview.value = overview
 
-        # Backdrop/Poster
         backdrop_path = item.get("backdrop_path") or item.get("poster_path")
         if backdrop_path:
             image_url = f"{BACKDROP_BASE_URL}{backdrop_path}"
@@ -520,7 +475,6 @@ class TMDBApp:
                 bgcolor=self.colors["surface"]
             )
 
-        # Show modal
         self.details_modal.visible = True
         self.page.update()
 
@@ -540,9 +494,8 @@ def main(page: ft.Page):
     app = TMDBApp(page)
 
 
-# Desktop app configuration
 if __name__ == "__main__":
     ft.app(
         target=main,
-        view=ft.AppView.FLET_APP  # Changed from WEB_BROWSER to FLET_APP for desktop
+        view=ft.AppView.FLET_APP
     )
